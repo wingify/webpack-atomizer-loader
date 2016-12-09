@@ -1,4 +1,4 @@
-[![npm version](https://badge.fury.io/js/atomic-loader.svg)](http://badge.fury.io/js/webpack-atomizer-loader)
+[![npm version](https://badge.fury.io/js/webpack-atomizer-loader.svg)](http://badge.fury.io/js/webpack-atomizer-loader)
 ![travis build state](https://travis-ci.org/tom76kimo/atomic-loader.svg?branch=master)
 # webpack-atomizer-loader
 Webpack loader for compiling atomic css

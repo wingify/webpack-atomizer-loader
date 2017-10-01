@@ -1,4 +1,5 @@
 var path = require('path');
+var autoprefixer = require('autoprefixer');
 
 module.exports = {
     entry: __dirname + '/index.js',
@@ -13,6 +14,7 @@ module.exports = {
                 exclude: /(node_modules)/,
                 loader: '../dist/atomicLoader',
                 query: {
+                    postcssPlugins: [autoprefixer],
                     minimize: true,
                     configPath: [
                         path.resolve('./atomCssConfig.js'),

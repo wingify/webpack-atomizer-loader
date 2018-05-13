@@ -37,10 +37,12 @@ var cachedResponse = '';
 
 var atomizer = new _atomizer2.default({ verbose: true });
 var cache = {};
+var cachedResponses = {};
 var crypto = require('crypto');
 
 var writeCssFile = function writeCssFile(cssDest, cssString) {
     return new Promise(function (resolve, reject) {
+
         _fs2.default.writeFile(cssDest, cssString, function (err) {
             if (err) {
                 reject(err);
@@ -81,6 +83,7 @@ var configObject = {
 var parseAndGenerateFile = function parseAndGenerateFile(configPath, source) {
     var validPostcssPlugins = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
     var minimize = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
+    var sourceHash = arguments[4];
 
     return new Promise(function (resolve, reject) {
         var firstTrigger = configObject[configPath] || true;
@@ -119,12 +122,12 @@ var parseAndGenerateFile = function parseAndGenerateFile(configPath, source) {
                 css = _result$css === undefined ? '' : _result$css;
 
 
-            if (css === cachedResponse) {
+            if (css === (cachedResponse || cachedResponses[sourceHash])) {
                 return resolve();
             }
 
             writeCssFile(cssDest, css).then(function () {
-                cachedResponse = css;
+                cachedResponse = cachedResponses[sourceHash] = css;
                 return resolve();
             }).catch(function (err) {
                 return reject(err);
@@ -135,12 +138,13 @@ var parseAndGenerateFile = function parseAndGenerateFile(configPath, source) {
 
 var atomicLoader = function atomicLoader(source, map) {
     var callback = this.async();
+    var sourceHash = crypto.createHash('md5').update(source).digest('hex');
     if (this.cacheable) {
         this.cacheable();
     }
 
-    if (!cache[crypto.createHash('md5').update(source).digest('hex')]) {
-        cache[crypto.createHash('md5').update(source).digest('hex')] = 1;
+    if (!cache[sourceHash]) {
+        cache[sourceHash] = 1;
     } else {
         return callback(null, source);
     }
@@ -161,7 +165,7 @@ var atomicLoader = function atomicLoader(source, map) {
     }
 
     var tasks = configPaths.map(function (configPath) {
-        return parseAndGenerateFile(configPath, source, validPostcssPlugins, minimize);
+        return parseAndGenerateFile(configPath, source, validPostcssPlugins, minimize, sourceHash);
     });
 
     Promise.all(tasks).then(function () {
